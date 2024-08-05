@@ -14,14 +14,17 @@ commands:
 permissions:
   chatcolor.use:
     description: Allows basic use of the plugin.
+    default: true
   chatcolor.use-color-codes:
     description: Allows use of legacy color codes in messages.
+    default: true
   chatcolor.use-hex-codes:
     description: Allows use of hex color codes in messages.
-
+    default: true
   chatcolor.gui:
     description: Allows use of the ChatColor GUI.
-
+    default: true
+    
   chatcolor.color.0:
     description: Allows the player to use the black color.
   chatcolor.color.1:
@@ -56,6 +59,7 @@ permissions:
     description: Allows the player to use the white color.
   chatcolor.color.*:
     description: Allows the player to use any color.
+    default: true
     children:
       chatcolor.color.0: true
       chatcolor.color.1: true
@@ -73,7 +77,7 @@ permissions:
       chatcolor.color.d: true
       chatcolor.color.e: true
       chatcolor.color.f: true
-
+    default: true
   chatcolor.modifier.k:
     description: Allows the player to use the obfuscated modifier.
   chatcolor.modifier.l:
@@ -86,15 +90,17 @@ permissions:
     description: Allows the player to use the italic modifier.
   chatcolor.modifier.*:
     description: Allows the player to use any modifier.
+    default: true
     children:
       chatcolor.modifier.k: true
       chatcolor.modifier.l: true
       chatcolor.modifier.m: true
       chatcolor.modifier.n: true
       chatcolor.modifier.o: true
-
+    default: true
   chatcolor.change.self:
     description: Allows the player to change their own color.
+    default: true
   chatcolor.change.others:
     description: Allows the player to change other players' colors.
   chatcolor.change.*:
@@ -102,9 +108,11 @@ permissions:
     children:
       chatcolor.change.self: true
       chatcolor.change.others: true
-
+    default: true
   chatcolor.admin:
     description: Allows the player to use ChatColor admin commands.
+    default: true
 
   chatcolor.custom.*:
     description: Allows the player to use all custom colors.
+    default: true
