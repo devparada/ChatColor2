@@ -1,6 +1,6 @@
 name: ChatColor2
 main: com.sulphate.chatcolor2.main.ChatColor
-version: ${project.version}
+version: 1.16
 api-version: "1.13"
 author: Sulphate
 
@@ -14,13 +14,16 @@ commands:
 permissions:
   chatcolor.use:
     description: Allows basic use of the plugin.
+    default: true
   chatcolor.use-color-codes:
     description: Allows use of legacy color codes in messages.
+    default: true
   chatcolor.use-hex-codes:
     description: Allows use of hex color codes in messages.
-
+    default: true
   chatcolor.gui:
     description: Allows use of the ChatColor GUI.
+    default: true
 
   chatcolor.color.0:
     description: Allows the player to use the black color.
@@ -56,6 +59,7 @@ permissions:
     description: Allows the player to use the white color.
   chatcolor.color.*:
     description: Allows the player to use any color.
+    default: true
     children:
       chatcolor.color.0: true
       chatcolor.color.1: true
@@ -73,9 +77,6 @@ permissions:
       chatcolor.color.d: true
       chatcolor.color.e: true
       chatcolor.color.f: true
-
-  chatcolor.special:
-    description: Allows the player to use gradients and rainbows.
 
   chatcolor.modifier.k:
     description: Allows the player to use the obfuscated modifier.
@@ -95,9 +96,10 @@ permissions:
       chatcolor.modifier.m: true
       chatcolor.modifier.n: true
       chatcolor.modifier.o: true
-
+    default: true
   chatcolor.change.self:
     description: Allows the player to change their own color.
+    default: true
   chatcolor.change.others:
     description: Allows the player to change other players' colors.
   chatcolor.change.*:
@@ -108,9 +110,6 @@ permissions:
 
   chatcolor.admin:
     description: Allows the player to use ChatColor admin commands.
-
-  chatcolor.clear:
-    description: Allows the player to clear their chat colour.
 
   chatcolor.custom.*:
     description: Allows the player to use all custom colors.
