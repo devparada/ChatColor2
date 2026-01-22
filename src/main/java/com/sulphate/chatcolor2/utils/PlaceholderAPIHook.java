@@ -60,7 +60,6 @@ public class PlaceholderAPIHook extends PlaceholderExpansion {
 
     @Override
     public String onPlaceholderRequest(Player player, @NotNull String identifier) {
-
         // Ignore if player is null.
         if (player == null) {
             return "";
@@ -70,7 +69,7 @@ public class PlaceholderAPIHook extends PlaceholderExpansion {
         String colour = dataStore.getColour(uuid);
         boolean isCustomColour = GeneralUtils.isCustomColour(colour);
 
-        switch (identifier) {
+        switch (identifier.toLowerCase()) {
             case "full_color": {
                 // Return the player's full colour, including modifiers. Does not work for rainbow/gradient colours!
                 if (isCustomColour) {
