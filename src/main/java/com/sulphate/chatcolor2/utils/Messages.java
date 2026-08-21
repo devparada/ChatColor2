@@ -71,6 +71,11 @@ public class Messages implements Reloadable {
     public String CUSTOM_COLOR_REMOVED;
     public String COLOR_CLEARED;
     public String RESET_WARNING;
+    public String HELP_INFO_MESSAGE;
+    public String HELP_PLUGIN_PAGE;
+    public String HELP_WIKI_LINK;
+    public String PLAYER_PAUSED;
+    public String PLAYER_UNPAUSED;
 
     // Group-Colour Messages
     public String GROUP_COLOR_EXISTS;
@@ -98,6 +103,7 @@ public class Messages implements Reloadable {
     public String GUI_ERROR;
     public String GUI_UNAVAILABLE;
     public String GUI_AVAILABLE;
+    public String CLICK_TO_RUN;
 
     // Colour Strings
     public String BLACK;
@@ -116,6 +122,7 @@ public class Messages implements Reloadable {
     public String LIGHT_PURPLE;
     public String YELLOW;
     public String WHITE;
+    public String DEFAULT;
 
     // Modifier Strings
     public String OBFUSCATED;
@@ -155,6 +162,7 @@ public class Messages implements Reloadable {
     public static final String DYNAMIC_INVENTORY_OVERFLOW = "Dynamic GUI %s has overflowed, skipping %d items.";
     public static final String INVALID_CUSTOM_COLOUR = "Invalid custom colour item in GUI %s: %s, skipping.";
     public static final String INVALID_GUI_ITEM = "Invalid GUI item: %s";
+    public static final String PLAYER_HEADS_NOT_SUPPORTED = "Player heads are not available on this version of Minecraft. Please remove all player heads from the GUI.";
 
     public void reloadMessages() {
         config = configsManager.getConfig(Config.MESSAGES);
@@ -208,6 +216,11 @@ public class Messages implements Reloadable {
         CUSTOM_COLOR_REMOVED = getAndColourise("custom-color-removed");
         COLOR_CLEARED = getAndColourise("color-cleared");
         RESET_WARNING = getAndColourise("reset-warning");
+        HELP_INFO_MESSAGE = getAndColourise("help-info-message");
+        HELP_PLUGIN_PAGE = getAndColourise("help-plugin-page");
+        HELP_WIKI_LINK = getAndColourise("help-wiki-link");
+        PLAYER_PAUSED = getAndColourise("player-paused");
+        PLAYER_UNPAUSED = getAndColourise("player-unpaused");
 
         // Group-Color Messages
         GROUP_COLOR_EXISTS = getAndColourise("group-color-exists");
@@ -235,6 +248,7 @@ public class Messages implements Reloadable {
         GUI_ERROR = getAndColourise("gui-error");
         GUI_UNAVAILABLE = getAndColourise("gui-unavailable");
         GUI_AVAILABLE = getAndColourise("gui-available");
+        CLICK_TO_RUN = getAndColourise("click-to-run");
 
         // Colour Strings
         BLACK = getAndColourise("black");
@@ -253,6 +267,7 @@ public class Messages implements Reloadable {
         LIGHT_PURPLE = getAndColourise("light-purple");
         YELLOW = getAndColourise("yellow");
         WHITE = getAndColourise("white");
+        DEFAULT = getAndColourise("default");
 
         // Modifier Strings
         OBFUSCATED = getAndColourise("obfuscated");

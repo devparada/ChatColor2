@@ -12,12 +12,14 @@ import com.sulphate.chatcolor2.data.DatabaseConnectionSettings;
 import com.sulphate.chatcolor2.data.PlayerDataStore;
 import com.sulphate.chatcolor2.data.SqlStorageImpl;
 import com.sulphate.chatcolor2.data.YamlStorageImpl;
+import com.sulphate.chatcolor2.gui.item.ItemStackTemplate;
 import com.sulphate.chatcolor2.listeners.*;
 import com.sulphate.chatcolor2.managers.*;
 import com.sulphate.chatcolor2.gui.GuiManager;
 import com.sulphate.chatcolor2.utils.*;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -34,6 +36,8 @@ import com.sulphate.chatcolor2.commands.ConfirmHandler;
 
 public class ChatColor extends JavaPlugin {
 
+    private static final String EXAMPLE_HEAD_DATA = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzMzYWU4ZGU3ZWQwNzllMzhkMmM4MmRkNDJiNzRjZmNiZDk0YjM0ODAzNDhkYmI1ZWNkOTNkYThiODEwMTVlMyJ9fX0=";
+
     private static ChatColor plugin;
     private static List<Reloadable> reloadables;
 
@@ -49,6 +53,7 @@ public class ChatColor extends JavaPlugin {
     private Messages M;
 
     private PlayerJoinListener joinListener;
+    private ChatListener chatListener;
     private YamlConfiguration config;
 
     private final ConsoleCommandSender console = Bukkit.getConsoleSender();
@@ -70,8 +75,8 @@ public class ChatColor extends JavaPlugin {
 
         // Setup objects. commands & listeners.
         setupObjects();
-        setupCommands();
         setupListeners();
+        setupCommands();
 
         //Checking if Metrics is allowed for this plugin
         boolean metrics = getConfig().getBoolean("stats");
@@ -82,13 +87,21 @@ public class ChatColor extends JavaPlugin {
         // Startup messages.
         for (String message : M.STARTUP_MESSAGES) {
             message = message.replace("[version]", getDescription().getVersion());
-            message = message.replace("[version-description]", "GUI rework & additional features! (+Bug fixes)");
+            message = message.replace("[version-description]", "SQL support tweaks & bug fixes.");
             console.sendMessage(M.PREFIX + GeneralUtils.colourise(message));
         }
 
         // Show legacy notice if necessary.
         if (CompatabilityUtils.isHexLegacy()) {
             console.sendMessage(M.PREFIX + M.LEGACY_DETECTED);
+        }
+
+        // Check for player head compatibility
+        ItemStackTemplate head = new ItemStackTemplate(Material.PLAYER_HEAD, null, null, EXAMPLE_HEAD_DATA);
+        head.build(1);
+
+        if (head.failedToApplyHeadData()) {
+            console.sendMessage(M.PREFIX + Messages.PLAYER_HEADS_NOT_SUPPORTED);
         }
 
         // Check whether PlaceholderAPI is installed, if it is load the expansion.
@@ -119,11 +132,22 @@ public class ChatColor extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        guiManager.closeOpenGuis();
-        playerDataStore.shutdown();
+        if (guiManager != null) {
+            guiManager.closeOpenGuis();
+        }
+
+        if (playerDataStore != null) {
+            playerDataStore.shutdown();
+        }
+
         plugin = null;
 
-        console.sendMessage(M.PREFIX + M.SHUTDOWN.replace("[version]", getDescription().getVersion()));
+        if (M != null) {
+            console.sendMessage(M.PREFIX + M.SHUTDOWN.replace("[version]", getDescription().getVersion()));
+        }
+        else {
+            console.sendMessage(GeneralUtils.colourise("&b[ChatColor] &eChatColor 2 Version &b" + getDescription().getVersion() + " &ehas been &cdisabled&e."));
+        }
     }
 
     private void setupObjects() {
@@ -144,6 +168,9 @@ public class ChatColor extends JavaPlugin {
         customColoursManager = new CustomColoursManager(configsManager);
         groupColoursManager = new GroupColoursManager(configsManager);
         M = new Messages(configsManager);
+
+        // Scan messages here to avoid any null messages when upgrading versions.
+        scanMessages();
 
         // Initialise player data store.
         String pdcType = config.getString("storage.type");
@@ -179,8 +206,7 @@ public class ChatColor extends JavaPlugin {
         reloadables.add(generalUtils);
         reloadables.add(guiManager);
 
-        // Scan messages, settings, and other values to make sure all are present.
-        scanMessages();
+        // Scan settings and other values to make sure all are present.
         scanSettings();
         scanOther();
     }
@@ -188,7 +214,7 @@ public class ChatColor extends JavaPlugin {
     private void setupCommands() {
         ChatColorCommand command = new ChatColorCommand(
                 M, generalUtils, confirmationsManager, configsManager, handlersManager, guiManager,
-                customColoursManager, groupColoursManager, playerDataStore
+                customColoursManager, groupColoursManager, playerDataStore, chatListener
         );
         ConfirmHandler confirmHandler = new ConfirmHandler(
                 M, confirmationsManager, configsManager, customColoursManager, guiManager, generalUtils,
@@ -203,7 +229,8 @@ public class ChatColor extends JavaPlugin {
 
     private void setupListeners() {
         EventPriority chatPriority = EventPriority.valueOf(config.getString("settings.event-priority"));
-        ChatListener chatListener = new ChatListener(configsManager, generalUtils, groupColoursManager, playerDataStore);
+        chatListener = new ChatListener(configsManager, generalUtils, groupColoursManager, playerDataStore);
+
         EventExecutor executor = (listener, event) -> {
             if (listener instanceof ChatListener && event instanceof AsyncPlayerChatEvent) {
                 ((ChatListener) listener).onEvent((AsyncPlayerChatEvent) event);
@@ -241,13 +268,15 @@ public class ChatColor extends JavaPlugin {
             if (!compareVersions(version, "1.15")) {
                 if (!backupOldConfig("gui.yml")) return false;
                 saveResource("gui.yml", true);
+                configsManager.reloadSingle(Config.GUI);
 
-                console.sendMessage(GeneralUtils.colourise("&b[ChatColor] &cWarning: An old GUI config was found. It has been copied to &aold-gui.yml&e."));
+                console.sendMessage(GeneralUtils.colourise("&b[ChatColor] &cWarning: &eAn old GUI config was found. It has been copied to &aold-gui.yml&e."));
             }
 
             if (!compareVersions(version, "1.14")) {
                 if (!backupOldConfig("config.yml")) return false;
                 saveResource("config.yml", true);
+                configsManager.reloadSingle(Config.MAIN_CONFIG);
 
                 console.sendMessage(GeneralUtils.colourise("&b[ChatColor] &cWarning: &eAn old version of the config was found. It has been copied to &aold-config.yml&e."));
             }

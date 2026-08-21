@@ -2,11 +2,14 @@ package com.sulphate.chatcolor2.gui.item.impl;
 
 import com.sulphate.chatcolor2.data.PlayerData;
 import com.sulphate.chatcolor2.gui.Gui;
+import com.sulphate.chatcolor2.gui.GuiManager;
 import com.sulphate.chatcolor2.gui.item.ItemStackTemplate;
 import com.sulphate.chatcolor2.gui.item.ComplexGuiItem;
 import com.sulphate.chatcolor2.gui.item.PermissibleItem;
 import com.sulphate.chatcolor2.gui.item.SelectableItem;
+import com.sulphate.chatcolor2.utils.GeneralUtils;
 import com.sulphate.chatcolor2.utils.InventoryUtils;
+import com.sulphate.chatcolor2.utils.StaticMaps;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -17,16 +20,22 @@ public class ColourItem extends ComplexGuiItem implements PermissibleItem, Selec
     private static String selectedText = "Selected";
     private static String unselectedText = "Unselected";
 
+    private final GeneralUtils generalUtils;
+
     private final PlayerData playerData;
     private final String permission;
     private final List<String> noPermissionLore;
     private boolean hasPermission = false;
     private boolean selected;
 
-    public ColourItem(String colour, ItemStackTemplate itemTemplate, PlayerData playerData, List<String> noPermissionLore) {
+    public ColourItem(String colour, ItemStackTemplate itemTemplate, PlayerData playerData, List<String> noPermissionLore, GeneralUtils generalUtils) {
         super(colour, itemTemplate);
+        this.generalUtils = generalUtils;
 
-        if (colour.startsWith("%")) {
+        if (colour.equals("default")) {
+            permission = "chatcolor.use";
+        }
+        else if (colour.startsWith("%")) {
             permission = "chatcolor.custom." + colour.substring(1);
         }
         else if (colour.startsWith("#")) {
@@ -51,6 +60,13 @@ public class ColourItem extends ComplexGuiItem implements PermissibleItem, Selec
         if (!hasPermission) {
             if (Gui.getNoPermissionItemTemplate() != null) {
                 item = Gui.getNoPermissionItemTemplate().build(1);
+
+                if (GuiManager.shouldCopyNoPermissionItemMaterial()) {
+                    List<String> lore = InventoryUtils.getLore(item);
+
+                    item = itemTemplate.build(1);
+                    InventoryUtils.setLore(item, lore);
+                }
 
                 if (!noPermissionLore.isEmpty()) {
                     InventoryUtils.setLore(item, noPermissionLore);
@@ -88,7 +104,7 @@ public class ColourItem extends ComplexGuiItem implements PermissibleItem, Selec
             hasPermission = player.hasPermission(permission) || player.hasPermission("chatcolor.use-hex-codes");
         }
         else {
-            hasPermission = player.hasPermission(permission);
+            hasPermission = player.hasPermission(permission) || player.hasPermission(StaticMaps.getVerbosePermission(permission));
         }
     }
 
@@ -106,10 +122,13 @@ public class ColourItem extends ComplexGuiItem implements PermissibleItem, Selec
 
             selected = true;
 
-            // Unless it's a custom colour, just set the 'name' of the colour.
+            // Unless it's a custom colour or the default, just set the name.
             // e.g., a, b, c, #123456
             if (data.startsWith("%")) {
                 playerData.setColour(data);
+            }
+            else if (data.equals("default")) {
+                playerData.setColour(generalUtils.getDefaultColourForPlayer(playerData.getUuid()));
             }
             else {
                 playerData.setColourName(data);

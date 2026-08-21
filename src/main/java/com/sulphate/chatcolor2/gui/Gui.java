@@ -3,12 +3,9 @@ package com.sulphate.chatcolor2.gui;
 import com.sulphate.chatcolor2.data.PlayerData;
 import com.sulphate.chatcolor2.exception.InvalidGuiException;
 import com.sulphate.chatcolor2.exception.InvalidMaterialException;
+import com.sulphate.chatcolor2.gui.item.impl.*;
 import com.sulphate.chatcolor2.managers.CustomColoursManager;
 import com.sulphate.chatcolor2.gui.item.*;
-import com.sulphate.chatcolor2.gui.item.impl.ColourItem;
-import com.sulphate.chatcolor2.gui.item.impl.InventoryItem;
-import com.sulphate.chatcolor2.gui.item.impl.ModifierItem;
-import com.sulphate.chatcolor2.gui.item.impl.SimpleGuiItem;
 import com.sulphate.chatcolor2.utils.CompatabilityUtils;
 import com.sulphate.chatcolor2.utils.GeneralUtils;
 import com.sulphate.chatcolor2.utils.Messages;
@@ -32,7 +29,7 @@ public class Gui {
 
     private static ItemStackTemplate fillerItemTemplate = new ItemStackTemplate(
             Material.GRAY_STAINED_GLASS_PANE,
-            "&r",
+            "&f",
             null,
             null
     );
@@ -282,10 +279,27 @@ public class Gui {
                     itemTemplate.setDisplayName(parsePrefixedColouredString(itemTemplate.getDisplayName()));
                 }
 
-                item = new ColourItem(data, itemTemplate, playerData, noPermissionLore);
+                item = new ColourItem(data, itemTemplate, playerData, noPermissionLore, generalUtils);
+            }
+            else if (type.equals(ItemType.COMMAND)) {
+                if (!itemSection.contains("material")) {
+                    throw new InvalidGuiException(String.format(Messages.INVALID_ITEM, itemKey, name, "missing 'material' config value"));
+                }
+                else if (!itemSection.contains("name")) {
+                    throw new InvalidGuiException(String.format(Messages.INVALID_ITEM, itemKey, name, "missing 'name' config value"));
+                }
+
+                ItemStackTemplate template = ItemStackTemplate.fromConfigSection(itemSection);
+
+                data = data.replace("%player%", owner.getDisplayName());
+                item = new CommandItem(data, template);
             }
             else {
-                item = new ModifierItem(data, String.format("&f&%s%s", data, generalUtils.getModifierName(data)), playerData, noPermissionLore);
+                String name = itemSection.contains("name") ?
+                        itemSection.getString("name") :
+                        String.format("&f&%s%s", data, generalUtils.getModifierName(data));
+
+                item = new ModifierItem(data, name, playerData, noPermissionLore);
             }
         }
 
@@ -313,17 +327,30 @@ public class Gui {
     }
 
     private String getColourName(String colour) {
-        if (colour.startsWith("%")) {
+        String colourName;
+
+        if (colour.equalsIgnoreCase("default")) {
+            colourName = generalUtils.getDefaultColourForPlayer(owner.getUniqueId()) + M.DEFAULT;
+        }
+        else if (colour.startsWith("%")) {
             String customColourName = Arrays.stream(colour.substring(1).split("[^0-9a-zA-Z]"))
                     .map(s -> s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase())
                     .collect(Collectors.joining(" "));
 
-            return customColoursManager.getCustomColour(colour) + customColourName;
+            colourName = customColoursManager.getCustomColour(colour) + customColourName;
         }
         else {
             colour = '&' + colour;
-            return String.format("%s%s", colour, generalUtils.getColorName(colour, true));
+            colourName = String.format("%s%s", colour, generalUtils.getColorName(colour, true));
         }
+
+        // White colours get replaced by nothing by Minecraft in item names (default colour)!
+        // Prefacing it with another colour fixes this problem.
+        if (colourName.startsWith("&f")) {
+            colourName = "&a" + colourName;
+        }
+
+        return colourName;
     }
 
     public void open() {
@@ -442,7 +469,7 @@ public class Gui {
     public static void setFillerItemMaterial(Material material) {
         fillerItemTemplate = new ItemStackTemplate(
                 material,
-                "&r",
+                "&f",
                 null,
                 null
         );

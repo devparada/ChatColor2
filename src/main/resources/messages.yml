@@ -10,7 +10,7 @@ placeholders-disabled: '&bPlaceholderAPI not found, placeholders &cwill not be a
 legacy-detected: '&bLegacy Minecraft version detected, hex colours &cwill not be available&b.'
 
 # General Messages and Strings
-prefix: '&5&l[&6Chat&aC&bo&cl&do&er&5&l] &e'
+prefix: '&g[#ffadad,#ffd6a5,#fdffb6,#caffbf,#9bf6ff,#a0c4ff,#bdb2ff,#ffc6ff]ChatColor &7&l> &e'
 command-exists: '&cThat command already exists!'
 colors: 'Colors'
 modifiers: 'Modifiers'
@@ -49,6 +49,11 @@ custom-color-added: 'Added a custom color, [color][color-name]&e.'
 custom-color-removed: 'Removed a custom color, [color][color-name]&e.'
 color-cleared: 'Your color has been cleared.'
 reset-warning: '&c&lWarning: This will reset all ChatColor configs.'
+help-info-message: 'Please see the following links for plugin support:'
+help-plugin-page: ' &7- &eSpigot: &bhttps://www.spigotmc.org/resources/chatcolor.22692/'
+help-wiki-link: ' &7- &eWiki: &bhttps://github.com/MCSulphate/ChatColor2/wiki'
+player-paused: 'Your chat colour has been paused. Run the command again to unpause.'
+player-unpaused: 'Your chat colour has been unpaused.'
 
 # Group-Color Messages
 group-color-exists: '&cThat group color already exists!'
@@ -76,6 +81,7 @@ invalid-gui: '&cTried to open a non-existent GUI ([name]), please report this to
 gui-error: '&cAn error occurred trying to open GUI [name], please report this to an admin.'
 gui-unavailable: '&cUnavailable'
 gui-available: '&aAvailable'
+click-to-run: '&eClick to run command'
 
 # Color Strings
 black: 'Black'
@@ -94,6 +100,7 @@ red: 'Red'
 light-purple: 'Light Purple'
 yellow: 'Yellow'
 white: 'White'
+default: 'Default'
 
 # Modifier Strings
 obfuscated: 'Obfuscated'

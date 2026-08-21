@@ -1,6 +1,6 @@
 name: ChatColor2
 main: com.sulphate.chatcolor2.main.ChatColor
-version: ${project.version}
+version: 1.16
 api-version: "1.13"
 author: Sulphate
 
@@ -24,7 +24,7 @@ permissions:
   chatcolor.gui:
     description: Allows use of the ChatColor GUI.
     default: true
-    
+
   chatcolor.color.0:
     description: Allows the player to use the black color.
   chatcolor.color.1:
