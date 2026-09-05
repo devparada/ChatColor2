@@ -9,7 +9,6 @@ import com.sulphate.chatcolor2.gui.GuiManager;
 import com.sulphate.chatcolor2.utils.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Sound;
 import org.bukkit.command.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -17,25 +16,12 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ChatColorCommand implements CommandExecutor, Reloadable {
 
-    private static final List<String> SETTING_NAMES = Arrays.asList(
-            "auto-save",
-            "save-interval",
-            "color-override",
-            "notify-others",
-            "join-message",
-            "confirm-timeout",
-            "default-color",
-            "command-name",
-            "force-group-colors",
-            "default-color-enabled",
-            "command-opens-gui",
-            "ignore-symbol-prefixes"
-    );
+    private static final List<String> SETTING_NAMES = Arrays.stream(Setting.values())
+            .map(it -> it.getName().toLowerCase().replace('_', '-'))
+            .toList();
 
     private final Messages M;
     private final GeneralUtils generalUtils;
@@ -79,9 +65,7 @@ public class ChatColorCommand implements CommandExecutor, Reloadable {
         boolean notifyOthers = mainConfig.getBoolean(Setting.NOTIFY_OTHERS.getConfigPath());
         boolean forceGroupColours = mainConfig.getBoolean(Setting.FORCE_GROUP_COLORS.getConfigPath());
 
-        if (sender instanceof Player) {
-
-            Player s = (Player) sender;
+        if (sender instanceof Player s) {
             // Run the command check.
             // This checks: permissions, valid colours, errors, confirming restrictions, and anything else I missed.
             if (!checkCommand(args, s)) {
@@ -306,6 +290,12 @@ public class ChatColorCommand implements CommandExecutor, Reloadable {
                 return true;
             }
 
+            // Kinda ass but I really don't feel like refactoring anything in this plugin any more
+            if (args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("remove")) {
+                handleConsoleAddRemove(args);
+                return true;
+            }
+
             UUID uuid = generalUtils.getUUIDFromName(args[0]);
 
             // If it's a command block sending the command, check for @p argument.
@@ -345,6 +335,75 @@ public class ChatColorCommand implements CommandExecutor, Reloadable {
         return true;
     }
 
+    private void handleConsoleAddRemove(String[] args) {
+        if (args.length < 3) {
+            GeneralUtils.sendConsoleMessage(M.PREFIX + M.NOT_ENOUGH_ARGS);
+            return;
+        }
+
+        String action = args[0];
+        String name = args[1];
+        UUID uuid = generalUtils.getUUIDFromName(name);
+
+        if (uuid == null) {
+            GeneralUtils.sendConsoleMessage(M.PREFIX + M.PLAYER_NOT_JOINED);
+            return;
+        }
+
+        String modifierToCheck = args[2];
+        String colour = dataStore.getColour(uuid);
+
+        if (GeneralUtils.isCustomColour(colour)) {
+            GeneralUtils.sendConsoleMessage(M.PREFIX + M.CANNOT_MODIFY_CUSTOM_COLOR);
+            return;
+        }
+
+        String modifier = getModifier(modifierToCheck);
+
+        if (modifier == null) {
+            GeneralUtils.sendConsoleMessage(M.PREFIX + M.INVALID_MODIFIER.replace("[modifier]", modifierToCheck));
+            return;
+        }
+
+        String newColour;
+
+        switch (action) {
+            case "add": {
+                if (colour.contains(modifier)) {
+                    GeneralUtils.sendConsoleMessage(M.PREFIX + M.MODIFIER_ALREADY_IN_COLOR);
+                    return;
+                }
+
+                // Add the new modifier to their chat colour.
+                newColour = colour + modifier;
+                break;
+            }
+
+            case "remove": {
+                if (!colour.contains(modifier)) {
+                    GeneralUtils.sendConsoleMessage(M.PREFIX + M.MODIFIER_NOT_IN_COLOR);
+                    return;
+                }
+
+                // Remove the modifier from their chat colour.
+                newColour = colour.replace(modifier, "");
+                break;
+            }
+
+            default: {
+                throw new RuntimeException("Impossible state: action other than add/remove received in handleConsoleAddRemove()");
+            }
+        }
+
+        dataStore.setColour(uuid, newColour);
+        GeneralUtils.sendConsoleMessage(M.PREFIX + generalUtils.colourSetMessage(M.SET_OTHERS_COLOR.replace("[player]", args[1]), newColour));
+
+        Player target;
+        if ((target = Bukkit.getPlayer(uuid)) != null) {
+            target.sendMessage(M.PREFIX + generalUtils.colourSetMessage(M.PLAYER_SET_YOUR_COLOR.replace("[player]", "CONSOLE"), newColour));
+        }
+    }
+
     private void doConsoleSetColour(CommandSender sender, UUID uuid, String[] args, boolean notifyOthers) {
         String colour = args[1];
 
@@ -363,12 +422,7 @@ public class ChatColorCommand implements CommandExecutor, Reloadable {
                 return;
             }
 
-            // Check for hex support, if necessary.
-            if (GeneralUtils.isValidHexColour(colour) && CompatabilityUtils.isHexLegacy()) {
-                sender.sendMessage(M.PREFIX + M.NO_HEX_SUPPORT);
-                return;
-            }
-            else if (GeneralUtils.isCustomColour(colour)) {
+            if (GeneralUtils.isCustomColour(colour)) {
                 if (customColoursManager.getCustomColour(colour) == null) {
                     sender.sendMessage(M.PREFIX + M.INVALID_CUSTOM_COLOR);
                     return;
@@ -642,11 +696,6 @@ public class ChatColorCommand implements CommandExecutor, Reloadable {
                     player.sendMessage(M.PREFIX + M.INVALID_COLOR.replace("[color]", args[3]));
                     return false;
                 }
-                // Check for hex support, if necessary.
-                else if (CompatabilityUtils.isHexLegacy() && GeneralUtils.isValidHexColour(colour)) {
-                    player.sendMessage(M.PREFIX + M.NO_HEX_SUPPORT);
-                    return false;
-                }
 
                 return true;
             }
@@ -735,11 +784,7 @@ public class ChatColorCommand implements CommandExecutor, Reloadable {
 
             // Allows for setting rainbows & gradients from a command.
             if (colour.startsWith("&u") || colour.startsWith("&g")) {
-                if (colour.startsWith("&g") && CompatabilityUtils.isHexLegacy()) {
-                    player.sendMessage(M.PREFIX + M.NO_HEX_SUPPORT);
-                    return false;
-                }
-                else if (!player.hasPermission("chatcolor.special")) {
+                if (!player.hasPermission("chatcolor.special")) {
                     player.sendMessage(M.PREFIX + M.NO_PERMISSIONS);
                     return false;
                 }
@@ -755,12 +800,7 @@ public class ChatColorCommand implements CommandExecutor, Reloadable {
             }
 
             if (colour != null) {
-                // Check for hex support, if necessary.
-                if (GeneralUtils.isValidHexColour(colour) && CompatabilityUtils.isHexLegacy()) {
-                    player.sendMessage(M.PREFIX + M.NO_HEX_SUPPORT);
-                    return false;
-                }
-                else if (GeneralUtils.isCustomColour(colour)) {
+                if (GeneralUtils.isCustomColour(colour)) {
                     if (customColoursManager.getCustomColour(colour) == null) {
                         player.sendMessage(M.PREFIX + M.INVALID_CUSTOM_COLOR);
                         return false;
@@ -823,11 +863,7 @@ public class ChatColorCommand implements CommandExecutor, Reloadable {
 
         // Allows for setting rainbows & gradients from a command.
         if (colour.startsWith("&u") || colour.startsWith("&g")) {
-            if (colour.startsWith("&g") && CompatabilityUtils.isHexLegacy()) {
-                player.sendMessage(M.PREFIX + M.NO_HEX_SUPPORT);
-                return false;
-            }
-            else if (!player.hasPermission("chatcolor.special")) {
+            if (!player.hasPermission("chatcolor.special")) {
                 player.sendMessage(M.PREFIX + M.NO_PERMISSIONS);
                 return false;
             }
@@ -853,12 +889,7 @@ public class ChatColorCommand implements CommandExecutor, Reloadable {
                 return false;
             }
 
-            // Check for hex support, if necessary.
-            if (GeneralUtils.isValidHexColour(colour) && CompatabilityUtils.isHexLegacy()) {
-                player.sendMessage(M.PREFIX + M.NO_HEX_SUPPORT);
-                return false;
-            }
-            else if (GeneralUtils.isCustomColour(colour)) {
+            if (GeneralUtils.isCustomColour(colour)) {
                 if (customColoursManager.getCustomColour(colour) == null) {
                     player.sendMessage(M.PREFIX + M.INVALID_CUSTOM_COLOR);
                     return false;

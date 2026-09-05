@@ -1,7 +1,7 @@
 name: ChatColor2
 main: com.sulphate.chatcolor2.main.ChatColor
 version: ${project.version}
-api-version: "1.13"
+api-version: "1.16"
 author: Sulphate
 
 softdepend: [ PlaceholderAPI ]
@@ -108,6 +108,9 @@ permissions:
 
   chatcolor.admin:
     description: Allows the player to use ChatColor admin commands.
+    default: op
+    children:
+      chatcolor.admin.ignore-group-colors: true
 
   chatcolor.clear:
     description: Allows the player to clear their chat colour.

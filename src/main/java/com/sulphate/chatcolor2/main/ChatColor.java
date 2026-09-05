@@ -87,13 +87,8 @@ public class ChatColor extends JavaPlugin {
         // Startup messages.
         for (String message : M.STARTUP_MESSAGES) {
             message = message.replace("[version]", getDescription().getVersion());
-            message = message.replace("[version-description]", "Support for latest MC version");
+            message = message.replace("[version-description]", "Various minor fixes & features");
             console.sendMessage(M.PREFIX + GeneralUtils.colourise(message));
-        }
-
-        // Show legacy notice if necessary.
-        if (CompatabilityUtils.isHexLegacy()) {
-            console.sendMessage(M.PREFIX + M.LEGACY_DETECTED);
         }
 
         // Check for player head compatibility
@@ -151,9 +146,6 @@ public class ChatColor extends JavaPlugin {
     }
 
     private void setupObjects() {
-        // Init compatability utils.
-        CompatabilityUtils.init();
-
         configUtils = new ConfigUtils(this, GeneralUtils::sendConsoleMessage);
         configsManager = new ConfigsManager(configUtils);
         config = configsManager.getConfig(Config.MAIN_CONFIG);

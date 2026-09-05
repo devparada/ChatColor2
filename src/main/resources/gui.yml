@@ -14,10 +14,11 @@
 #
 #   items:
 #     <slot number>:
-#       type: [COLOUR / MODIFIER / INVENTORY / FILLER]
+#       type: [COLOUR / MODIFIER / INVENTORY / FILLER / COMMAND / CLOSE_GUI ]
 #       data: [color name / modifier char / inventory name]
+#       command-source: [ PLAYER / CONSOLE ] <-- This is *only* for COMMAND items, and sets who should run the command.
 #       name: [item name (colors supported)]
-#       material: [item material (colors & inventories only)]
+#       material: [item material (colors, inventories, commands, close GUI items only)]
 #       lore: [lore to display on the item, always]
 #       no-permission-lore: [lore to display when the player doesn't have permission]
 #
@@ -165,10 +166,18 @@ main:
       material: PLAYER_HEAD
       head-data: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODFjOTZhNWMzZDEzYzMxOTkxODNlMWJjN2YwODZmNTRjYTJhNjUyNzEyNjMwM2FjOGUyNWQ2M2UxNmI2NGNjZiJ9fX0='
 
-    40:
+    39:
       type: COLOUR
       data: default
       material: WHITE_DYE
+
+    41:
+      type: CLOSE_GUI
+      name: "&bClose GUI"
+      lore:
+        - ''
+        - '&eClick to close the GUI.'
+      material: BARRIER
 
     44:
       type: INVENTORY

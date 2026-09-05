@@ -1,15 +1,17 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>me.sulphate</groupId>
   <artifactId>ChatColor2</artifactId>
-  <version>1.16.2</version>
+  <version>1.17</version>
   <name>ChatColor2</name>
 
   <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.release>25</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -36,11 +38,12 @@
   </repositories>
 
   <dependencies>
+
     <!-- Spigot API -->
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
-      <version>1.20.3-R0.1-SNAPSHOT</version>
+      <version>26.2-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
 
@@ -68,20 +71,12 @@
       <scope>compile</scope>
     </dependency>
 
-    <!-- HikariDB (JDBC Connection Pool Manager) -->
+    <!-- HikariCP -->
     <dependency>
       <groupId>com.zaxxer</groupId>
       <artifactId>HikariCP</artifactId>
       <version>4.0.3</version>
       <scope>compile</scope>
-    </dependency>
-
-    <!-- Mojang Authlib (required for skulls) -->
-    <dependency>
-      <groupId>com.mojang</groupId>
-      <artifactId>authlib</artifactId>
-      <version>1.5.21</version>
-      <scope>provided</scope>
     </dependency>
 
   </dependencies>
@@ -95,13 +90,26 @@
     </resources>
 
     <plugins>
+
+      <!-- Java 25 compiler -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.14.1</version>
+        <configuration>
+          <release>25</release>
+        </configuration>
+      </plugin>
+
+      <!-- Shade dependencies into the plugin JAR -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.6.0</version>
-        <configuration>
+        <version>3.6.2</version>
 
+        <configuration>
           <relocations>
+
             <relocation>
               <pattern>org.bstats</pattern>
               <shadedPattern>com.sulphate.chatcolor2.lib.org.bstats</shadedPattern>
@@ -116,6 +124,7 @@
               <pattern>com.zaxxer</pattern>
               <shadedPattern>com.sulphate.chatcolor2.lib.com.zaxxer</shadedPattern>
             </relocation>
+
           </relocations>
 
           <filters>
@@ -132,7 +141,6 @@
               </excludes>
             </filter>
           </filters>
-
         </configuration>
 
         <executions>
@@ -145,6 +153,7 @@
         </executions>
 
       </plugin>
+
     </plugins>
   </build>
 

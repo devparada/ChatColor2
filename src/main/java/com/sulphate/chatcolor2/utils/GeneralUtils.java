@@ -244,11 +244,6 @@ public class GeneralUtils implements Reloadable {
     }
 
     private static String createHexColour(String hexString) {
-        // Safe fallback to white colour if hex is not supported.
-        if (CompatabilityUtils.isHexLegacy()) {
-            return colourise("&f");
-        }
-
         hexString = hexString.replace("&", "");
         return net.md_5.bungee.api.ChatColor.of(hexString).toString();
     }
@@ -566,7 +561,14 @@ public class GeneralUtils implements Reloadable {
         }
 
         if (colour.startsWith("%")) {
-            return colour;
+            boolean shouldHidePrefix = mainConfig.getBoolean(Setting.HIDE_CUSTOM_COLOR_PREFIX.getConfigPath());
+
+            if (shouldHidePrefix) {
+                return colour.substring(1);
+            }
+            else {
+                return colour;
+            }
         }
         else if (colour.startsWith("&u")) {
             return "rainbow";

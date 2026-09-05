@@ -6,7 +6,6 @@ import com.sulphate.chatcolor2.exception.InvalidMaterialException;
 import com.sulphate.chatcolor2.gui.item.impl.*;
 import com.sulphate.chatcolor2.managers.CustomColoursManager;
 import com.sulphate.chatcolor2.gui.item.*;
-import com.sulphate.chatcolor2.utils.CompatabilityUtils;
 import com.sulphate.chatcolor2.utils.GeneralUtils;
 import com.sulphate.chatcolor2.utils.Messages;
 import org.bukkit.Bukkit;
@@ -222,6 +221,11 @@ public class Gui {
         if (type.equals(ItemType.FILLER)) {
             item = new SimpleGuiItem(fillerItemTemplate);
         }
+        else if (type.equals(ItemType.CLOSE_GUI)) {
+            item = new CloseGUIItem(
+                    ItemStackTemplate.fromConfigSection(itemSection)
+            );
+        }
         else {
             if (!itemSection.contains("data")) {
                 throw new InvalidGuiException(String.format(Messages.INVALID_ITEM, itemKey, name, "missing 'data' config value"));
@@ -261,14 +265,6 @@ public class Gui {
                     }
                 }
 
-                if (CompatabilityUtils.isHexLegacy()) {
-                    String colour = GeneralUtils.isCustomColour(data) ? customColoursManager.getCustomColour(data) : data;
-
-                    if (GeneralUtils.containsHexColour(colour, false)) {
-                        return new ParseResult(null, -1, true);
-                    }
-                }
-
                 ItemStackTemplate itemTemplate = ItemStackTemplate.fromConfigSection(itemSection);
 
                 // Default display name is auto-generated, but allow them to override it if they want.
@@ -290,9 +286,24 @@ public class Gui {
                 }
 
                 ItemStackTemplate template = ItemStackTemplate.fromConfigSection(itemSection);
+                CommandItem.CommandSource source;
 
-                data = data.replace("%player%", owner.getDisplayName());
-                item = new CommandItem(data, template);
+                if (itemSection.contains("command-source")) {
+                    String rawSource = itemSection.getString("command-source");
+
+                    try {
+                        source = CommandItem.CommandSource.valueOf(rawSource);
+                    }
+                    catch (IllegalArgumentException _) {
+                        source = CommandItem.CommandSource.CONSOLE;
+                    }
+                }
+                else {
+                    source = CommandItem.CommandSource.CONSOLE;
+                }
+
+                data = data.replace("%player%", owner.getName());
+                item = new CommandItem(data, template, source);
             }
             else {
                 String name = itemSection.contains("name") ?
@@ -364,8 +375,8 @@ public class Gui {
     }
 
     // Performs an interaction within the GUI, updating the passed inventory with any effects of the interaction.
-    public void onInteract(int slot, Inventory inventory) {
-        // This means they clicked outside of the actual GUI.
+    public void onInteract(int slot, Inventory inventory, Player who) {
+        // This means they clicked outside the actual GUI.
         if (slot >= size) {
             return;
         }
@@ -378,13 +389,15 @@ public class Gui {
             if (doPreSelectChecks(selectable, slot, inventory)) {
                 if (selectable.select()) {
                     String colour = playerData.getColour();
+                    boolean isColourName = false;
 
                     if (selectable instanceof ColourItem) {
                         colour = ((ColourItem) selectable).buildItem().getItemMeta().getDisplayName();
+                        isColourName = true;
                     }
 
                     playSound(selectSound);
-                    owner.sendMessage(M.PREFIX + generalUtils.colourSetMessage(M.SET_OWN_COLOR, colour, true));
+                    owner.sendMessage(M.PREFIX + generalUtils.colourSetMessage(M.SET_OWN_COLOR, colour, isColourName));
                 }
                 else {
                     playSound(errorSound);
@@ -393,7 +406,7 @@ public class Gui {
             }
         }
         else if (clicked instanceof ClickableItem) {
-            ((ClickableItem) clicked).click();
+            ((ClickableItem) clicked).click(who);
         }
 
         inventory.setItem(slot, clicked.buildItem());
