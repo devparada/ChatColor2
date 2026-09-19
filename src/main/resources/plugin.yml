@@ -81,6 +81,7 @@ permissions:
 
   chatcolor.special:
     description: Allows the player to use gradients and rainbows.
+    default: true
 
   chatcolor.modifier.k:
     description: Allows the player to use the obfuscated modifier.
@@ -94,6 +95,7 @@ permissions:
     description: Allows the player to use the italic modifier.
   chatcolor.modifier.*:
     description: Allows the player to use any modifier.
+    default: true
     children:
       chatcolor.modifier.k: true
       chatcolor.modifier.l: true
@@ -110,7 +112,7 @@ permissions:
     description: Wildcard permission, allows the player to change their own and other players' colors.
     children:
       chatcolor.change.self: true
-      chatcolor.change.others: true
+      chatcolor.change.others: false
 
   chatcolor.admin:
     description: Allows the player to use ChatColor admin commands.
@@ -120,7 +122,7 @@ permissions:
 
   chatcolor.clear:
     description: Allows the player to clear their chat colour.
+    default: true
 
   chatcolor.custom.*:
     description: Allows the player to use all custom colors.
-    default: true
